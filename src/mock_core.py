@@ -9,6 +9,7 @@ import core.error_pb2 as error
 import core.provider_pb2 as provider
 import uno.uno_pb2 as uno
 import core.core_pb2_grpc
+import msg_builder as builder
 
 class GameCoreServicer(core.core_pb2_grpc.GameCoreServicer):
 
@@ -25,31 +26,13 @@ class GameCoreServicer(core.core_pb2_grpc.GameCoreServicer):
                 print("RegisterArgs Received, id: {}, name: {}, maxUsers: {}, minUsers: {}".format(
                     args.id, args.gameName, args.gameSetting.maxUsers, args.gameSetting.minUsers
                 ))
-                ret = provider.RegisterRet()
-                ret.err = error.OK
 
-                msg = provider.ProviderMsg()
-                msg.sequenceId = seqId + 1
-                msg.registerRet.CopyFrom(ret)
+                msg = builder.create_register_ret(seqId + 1, error.OK)
                 print("msg sent, type = {}".format(msg.WhichOneof("Msg")))
                 yield msg
 
-                settings = uno.StartGameSettings()
-                settings.isDraw2Consumed = True
-                settings.canSkipRespond = True
-                settings.hasWildSwapHandsCard = False
-                settings.canDoubtDraw4 = False
-                settings.roundTime = 15
-
-                args = provider.StartGameArgs()
-                args.roomId = 1205
-                args.userId.append(1)
-                args.userId.append(2)
-                args.userId.append(3)
-                args.custom.Pack(settings)
-
-                msg.sequenceId = seqId + 2
-                msg.startGameArgs.CopyFrom(args)
+                msg = builder.create_start_game_args(seqId + 2, 1205, [1, 2, 3],
+                    builder.create_start_game_settings(True, True, False, False, 15))
                 print("msg sent, type = {}".format(msg.WhichOneof("Msg")))
                 yield msg
                 
