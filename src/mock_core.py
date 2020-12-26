@@ -10,6 +10,8 @@ import core.provider_pb2 as provider
 import uno.uno_pb2 as uno
 import core.core_pb2_grpc
 import msg_builder as builder
+import msg_printer as printer
+import util
 
 class GameCoreServicer(core.core_pb2_grpc.GameCoreServicer):
 
@@ -18,14 +20,14 @@ class GameCoreServicer(core.core_pb2_grpc.GameCoreServicer):
 
     def Provider(self, request_iterator, context):
         for new_provider_msg in request_iterator:
+            printer.print_provider_msg(new_provider_msg)
+
             seqId = new_provider_msg.sequenceId
             msg_type = new_provider_msg.WhichOneof("Msg")
 
             if msg_type == "registerArgs":
                 args = new_provider_msg.registerArgs
-                print("RegisterArgs Received, id: {}, name: {}, maxUsers: {}, minUsers: {}".format(
-                    args.id, args.gameName, args.gameSetting.maxUsers, args.gameSetting.minUsers
-                ))
+                printer.print_register_args(args)
 
                 msg = builder.create_register_ret(seqId + 1, error.OK)
                 print("msg sent, type = {}".format(msg.WhichOneof("Msg")))
@@ -37,8 +39,17 @@ class GameCoreServicer(core.core_pb2_grpc.GameCoreServicer):
                 yield msg
                 
             elif msg_type == "notifyMsgArgs":
-                
-                pass
+                args = new_provider_msg.notifyMsgArgs
+                printer.print_notify_msg_args(args)
+
+                msg = util.unpack_to_notify_msg(args.custom)
+                msg_type = msg.WhichOneof("Msg")
+                if msg_type == "gameStart":
+                    game_start = msg.gameStart
+                    printer.print_game_start(game_start)
+                elif msg_type == "draw":
+                    pass
+
             else:
                 assert False
 
