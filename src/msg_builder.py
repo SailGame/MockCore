@@ -31,3 +31,22 @@ def create_start_game_settings(isDraw2Consumed, canSkipRespond,
     settings.canDoubtDraw4 = canDoubtDraw4
     settings.roundTime = roundTime
     return settings
+
+def create_user_operation_args(seqId, roomId, userId, custom):
+    args = provider.UserOperationArgs()
+    args.roomId = roomId
+    args.userId = userId
+    args.custom.Pack(custom)
+
+    msg = provider.ProviderMsg()
+    msg.sequenceId = seqId
+    msg.userOperationArgs.CopyFrom(args)
+    return msg
+
+def create_draw(number):
+    draw = uno.Draw()
+    draw.number = number
+
+    ret = uno.UserOperation()
+    ret.draw.CopyFrom(draw)
+    return ret

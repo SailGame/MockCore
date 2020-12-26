@@ -24,5 +24,6 @@ def print_notify_msg_args(_args):
 def print_game_start(game_start):
     print("    GameStart Received, initHandcards: {}, flippedCard: {}, firstPlayerId: {}"
         .format(util.convert_cardlist_to_str(game_start.initHandcards),
-        util.convert_card_to_str(game_start.flippedCard),
-        game_start.firstPlayerId))
+            util.convert_card_to_str(game_start.flippedCard),
+            game_start.firstPlayerId
+    ))
