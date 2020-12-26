@@ -11,40 +11,14 @@ import core.provider_pb2 as provider
 import uno.uno_pb2 as uno
 import core.core_pb2_grpc
 import msg_builder as builder
-import msg_printer as printer
+import msg_listener as listener
 import util
-
-def listen_to_provider(request_iterator):
-    for new_provider_msg in request_iterator:
-        printer.print_provider_msg(new_provider_msg)
-
-        seqId = new_provider_msg.sequenceId
-        msg_type = new_provider_msg.WhichOneof("Msg")
-
-        if msg_type == "registerArgs":
-            args = new_provider_msg.registerArgs
-            printer.print_register_args(args)
-
-        elif msg_type == "notifyMsgArgs":
-            args = new_provider_msg.notifyMsgArgs
-            printer.print_notify_msg_args(args)
-
-            msg = util.unpack_to_notify_msg(args.custom)
-            msg_type = msg.WhichOneof("Msg")
-
-            if msg_type == "gameStart":
-                game_start = msg.gameStart
-                printer.print_game_start(game_start)
-            elif msg_type == "draw":
-                pass
-
-        else:
-            assert False
 
 class GameCoreServicer(core.core_pb2_grpc.GameCoreServicer):
 
     def Provider(self, request_iterator, context):
-        thread = threading.Thread(target=listen_to_provider, args=(request_iterator,))
+        thread = threading.Thread(target=listener.listen_to_provider,
+            args=(request_iterator,))
         thread.start()
 
         while True:
@@ -60,11 +34,27 @@ class GameCoreServicer(core.core_pb2_grpc.GameCoreServicer):
                 yield msg
 
             elif args[0] == 1:
-                room_id, user_id, number = args[1:4]
+                # room_id, user_id, number = args[1:4]
+                room_id, user_id, number = [1205, 22, 2]
                 msg = builder.create_user_operation_args(0, room_id, user_id,
                     builder.create_draw(number))
                 yield msg
 
+            elif args[0] == 2:
+                # room_id, user_id = args[1:3]
+                room_id, user_id = [1205, 22]
+                msg = builder.create_user_operation_args(0, room_id, user_id,
+                    builder.create_skip())
+                yield msg
+            
+            elif args[0] == 3:
+                # room_id, user_id = args[1:3]
+                room_id, user_id = [1205, 33]
+                card = builder.create_card(uno.RED, uno.THREE)
+                next_color = uno.RED
+                msg = builder.create_user_operation_args(0, room_id, user_id,
+                    builder.create_play(card, next_color))
+                yield msg
     
 if __name__ == "__main__":
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

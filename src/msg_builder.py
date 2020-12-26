@@ -50,3 +50,24 @@ def create_draw(number):
     ret = uno.UserOperation()
     ret.draw.CopyFrom(draw)
     return ret
+
+def create_skip():
+    skip = uno.Skip()
+    ret = uno.UserOperation()
+    ret.skip.CopyFrom(skip)
+    return ret
+
+def create_play(card, nextColor):
+    play = uno.Play()
+    play.card.CopyFrom(card)
+    play.nextColor = nextColor
+    
+    ret = uno.UserOperation()
+    ret.play.CopyFrom(play)
+    return ret
+
+def create_card(color, text):
+    card = uno.Card()
+    uno.color = color
+    uno.text = text
+    return card
